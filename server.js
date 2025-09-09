@@ -15,31 +15,29 @@ app.use(cors({
     "https://sonafaculty-dashboard.netlify.app" // deployed frontend on Netlify
   ],
   methods: ["GET", "POST", "PATCH", "DELETE"],
-  //credentials: true
 }));
 
 app.use(express.json());
 
-// Main connection for studentidreq database
+// ✅ Main connection for studentidreq database
 mongoose.connect(process.env.MONGO_URI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
 })
-.then(() => console.log("✅ MongoDB connected"))
-.catch((err) => console.error("❌ MongoDB connection error:", err));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Models for studentidreq database
+// ✅ Models for studentidreq database
 const idCardSchema = new mongoose.Schema({}, { strict: false });
 const IdCard = mongoose.model("IdCard", idCardSchema, "idcards");
 const RejectedIdCard = mongoose.model("RejectedIdCard", idCardSchema, "rejectedidcards");
+const PrintId = mongoose.model("PrintId", idCardSchema, "printids");  // ✅ added here
 
-  
-// Model for facultynumbers collection
+// ✅ facultynumbers collection
 const facultySchema = new mongoose.Schema({
   facNumber: { type: String, required: true, unique: true }
 });
 const FacultyNumber = mongoose.model("FacultyNumber", facultySchema, "facultynumbers");
-
 
 // ✅ PATCH API to approve/reject requests
 app.patch("/api/requests/:id/status", async (req, res) => {
@@ -53,16 +51,17 @@ app.patch("/api/requests/:id/status", async (req, res) => {
     }
 
     if (status === "approved") {
-      // Copy to printids collection in printidreq DB
+      request.status = "approved";
+
+      // ✅ Save into printids collection in same DB
       const printReq = new PrintId(request.toObject());
       await printReq.save();
     } else if (status === "rejected") {
-      // Copy to rejectedidcards collection in studentidreq DB
       const rejectedReq = new RejectedIdCard(request.toObject());
       await rejectedReq.save();
     }
 
-    // Delete from idcards collection after processing
+    // ✅ Remove from pending (idcards) after moving
     await IdCard.findByIdAndDelete(id);
 
     res.send({ message: `Request ${status} successfully` });
@@ -103,32 +102,26 @@ app.get("/api/rejected", async (req, res) => {
   }
 });
 
-  
-// New API endpoint to check faculty ID existence
+// ✅ check faculty ID existence
 app.get("/api/check-faculty/:id", async (req, res) => {
   try {
     const facultyId = req.params.id;
     const faculty = await FacultyNumber.findOne({ facNumber: facultyId });
-    if (faculty) {
-      res.json({ valid: true });
-    } else {
-      res.json({ valid: false });
-    }
+    res.json({ valid: !!faculty });
   } catch (error) {
     console.error("Error checking faculty ID:", error);
     res.status(500).send({ message: "Internal Server Error" });
   }
 });
 
-  
-// Models for acchistoryid and rejhistoryids collections
+// ✅ History models
 const accHistorySchema = new mongoose.Schema({}, { strict: false });
 const AccHistoryId = mongoose.model("AccHistoryId", accHistorySchema, "acchistoryid");
 
 const rejHistorySchema = new mongoose.Schema({}, { strict: false });
 const RejHistoryId = mongoose.model("RejHistoryId", rejHistorySchema, "rejhistoryids");
 
-// New API endpoints to fetch approved and rejected history data
+// ✅ History APIs
 app.get("/api/acchistoryid", async (req, res) => {
   try {
     const data = await AccHistoryId.find();
@@ -149,10 +142,10 @@ app.get("/api/rejhistoryids", async (req, res) => {
   }
 });
 
-// Health check endpoint
+// ✅ Health check
 app.get("/api/health", (req, res) => {
-  res.json({ 
-    status: "OK", 
+  res.json({
+    status: "OK",
     message: "ReIDentify Backend API is running",
     timestamp: new Date().toISOString()
   });
