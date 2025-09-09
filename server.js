@@ -7,7 +7,17 @@ const dotenv = require("dotenv");
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+// ✅ Configure CORS properly
+app.use(cors({
+  origin: [
+    "http://localhost:5173",                   // local dev frontend (Vite)
+    "https://sonafaculty-dashboard.netlify.app" // deployed frontend on Netlify
+  ],
+  methods: ["GET", "POST", "PATCH", "DELETE"],
+  //credentials: true
+}));
+
 app.use(express.json());
 
 // Main connection for studentidreq database
@@ -30,12 +40,6 @@ const facultySchema = new mongoose.Schema({
 });
 const FacultyNumber = mongoose.model("FacultyNumber", facultySchema, "facultynumbers");
 
-// Separate connection for printidreq database
-const printIdConn = mongoose.createConnection("mongodb://127.0.0.1:27017/printidreq", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-const PrintId = printIdConn.model("PrintId", idCardSchema, "printids");
 
 // ✅ PATCH API to approve/reject requests
 app.patch("/api/requests/:id/status", async (req, res) => {
