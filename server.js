@@ -116,13 +116,13 @@ app.get("/api/check-faculty/:id", async (req, res) => {
 
 // ✅ History models
 const accHistorySchema = new mongoose.Schema({}, { strict: false });
-const AccHistoryId = mongoose.model("AccHistoryId", accHistorySchema, "acchistoryid");
+const AccHistoryId = mongoose.model("AccHistoryId", accHistorySchema, "acchistoryids");
 
 const rejHistorySchema = new mongoose.Schema({}, { strict: false });
 const RejHistoryId = mongoose.model("RejHistoryId", rejHistorySchema, "rejhistoryids");
 
 // ✅ History APIs
-app.get("/api/acchistoryid", async (req, res) => {
+app.get("/api/acchistoryids", async (req, res) => {
   try {
     const data = await AccHistoryId.find();
     res.json(data);
