@@ -12,7 +12,9 @@ const app = express();
 app.use(cors({
   origin: [
     "http://localhost:5173",                   // local dev frontend (Vite)
-    "https://sonafaculty-dashboard.netlify.app" // deployed frontend on Netlify
+    "http://localhost:8080",                   // added for local dev frontend on port 8080
+    "https://sonafaculty-dashboard.netlify.app", // deployed frontend on Netlify
+    "https://sonafaculty-dashboard.vercel.app" // deployed frontend on Vercel
   ],
   methods: ["GET", "POST", "PATCH", "DELETE"],
 }));
